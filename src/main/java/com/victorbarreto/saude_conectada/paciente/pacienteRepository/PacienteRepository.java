@@ -10,4 +10,6 @@ public interface PacienteRepository extends JpaRepository<PacienteDadosModel, Lo
     boolean existsByUsuarioModel(UsuarioModel usuario);
 
     Optional<PacienteDadosModel> findByUsuarioModel(UsuarioModel usuario);
+
+    Optional<PacienteDadosModel> findByUsuarioModelId(Long id);
 }

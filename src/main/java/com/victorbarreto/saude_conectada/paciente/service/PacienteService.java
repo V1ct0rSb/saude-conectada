@@ -75,4 +75,30 @@ public class PacienteService {
     }
 
 
+    public PacientePerfilDTO buscarPerfil(String emailUsuario) {
+        // 1. Encontra o usuário principal. Se ele não existir, a exceção aqui é correta.
+        UsuarioModel usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o email: " + emailUsuario));
+
+        // 2. Tenta encontrar o perfil de dados do paciente.
+        var perfilOpt = pacienteRepository.findByUsuarioModelId(usuario.getId());
+
+        // 3. Verifica se o perfil foi encontrado
+        if (perfilOpt.isPresent()) {
+            // SE EXISTIR: Retorna um DTO com os dados do perfil encontrado
+            var perfil = perfilOpt.get();
+            return new PacientePerfilDTO(
+                    perfil.getAltura(),
+                    perfil.getDataNascimento(),
+                    perfil.getComorbidades(),
+                    perfil.getPeso()
+            );
+        } else {
+            // SE NÃO EXISTIR: Retorna um DTO "vazio" com todos os campos nulos.
+            // O frontend irá receber isso e mostrar os campos do formulário em branco.
+            return new PacientePerfilDTO(null, null, null, null);
+        }
+    }
+
+
 }

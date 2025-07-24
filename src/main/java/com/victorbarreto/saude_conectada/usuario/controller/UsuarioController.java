@@ -17,6 +17,7 @@ import com.victorbarreto.saude_conectada.security.JwtUtil;
 import com.victorbarreto.saude_conectada.usuario.dto.TokenDTO;
 import com.victorbarreto.saude_conectada.usuario.dto.UsuarioCreateDTO;
 import com.victorbarreto.saude_conectada.usuario.dto.UsuarioLoginDTO;
+import com.victorbarreto.saude_conectada.usuario.dto.UsuarioLoginResponseDTO;
 import com.victorbarreto.saude_conectada.usuario.entity.UsuarioModel;
 import com.victorbarreto.saude_conectada.usuario.service.UsuarioService;
 
@@ -45,17 +46,24 @@ public class UsuarioController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenDTO> login(@RequestBody UsuarioLoginDTO usuarioLoginDTO) {
+    public ResponseEntity<UsuarioLoginResponseDTO> login(@RequestBody UsuarioLoginDTO usuarioLoginDTO) { // <-- Altere o tipo de retorno
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usuarioLoginDTO.email(),
                 usuarioLoginDTO.senha()
         ));
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String jwtToken = jwtUtil.generateToken(userDetails);
+        // Pega o UsuarioModel completo, que tem todas as informações
+        UsuarioModel usuarioAutenticado = (UsuarioModel) authentication.getPrincipal();
+        String jwtToken = jwtUtil.generateToken((UserDetails) usuarioAutenticado);
 
-        TokenDTO tokenDTO = new TokenDTO(jwtToken);
+        // Cria o novo DTO de resposta com todas as informações
+        UsuarioLoginResponseDTO response = new UsuarioLoginResponseDTO(
+                jwtToken,
+                usuarioAutenticado.getNome(),
+                usuarioAutenticado.getEmail(),
+                usuarioAutenticado.getTipo()
+        );
 
-        return ResponseEntity.ok(tokenDTO);
+        return ResponseEntity.ok(response);
     }
 
 }

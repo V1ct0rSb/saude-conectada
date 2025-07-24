@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,5 +41,17 @@ public class PacienteController {
         pacientePerfilDTO = pacienteService.atualizarPerfil(pacientePerfilDTO, emailUsuario);
 
         return ResponseEntity.ok(pacientePerfilDTO);
+    }
+
+    @GetMapping("/perfil/paciente")
+    public ResponseEntity<PacientePerfilDTO> buscarPerfil(Authentication authentication) {
+        // Pega o email do usuário que vem no token JWT
+        String emailUsuario = authentication.getName();
+
+        // Pede ao service para buscar os dados do perfil com base no email
+        PacientePerfilDTO perfil = pacienteService.buscarPerfil(emailUsuario);
+
+        // Retorna os dados do perfil com status 200 OK
+        return ResponseEntity.ok(perfil);
     }
 }

@@ -50,6 +50,13 @@ public class SecurityConfig {
                         // Suas regras existentes
                         .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
+
+                        // ===================> ADICIONE ESTA REGRA <===================
+                        // Exige que o usuário tenha a permissão "PACIENTE" para acessar as rotas de perfil de paciente
+                        .requestMatchers("/api/perfil/paciente/**").hasRole("PACIENTE")
+                        // =============================================================
+                        .requestMatchers("/api/perfil/profissional/**").hasRole("PROFISSIONAL")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

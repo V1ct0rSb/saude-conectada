@@ -35,7 +35,7 @@ public class UsuarioService {
     }
 
     //GET
-    public List<UsuarioModel> listarUsuarios(){
+    public List<UsuarioModel> listarUsuarios() {
         return usuarioRepository.findAll();
     }
 
