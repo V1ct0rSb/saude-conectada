@@ -3,10 +3,15 @@ package com.victorbarreto.saude_conectada.profissional.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.victorbarreto.saude_conectada.paciente.dto.PacientePerfilDTO;
+import com.victorbarreto.saude_conectada.paciente.entity.PacienteMetaDiaria;
+import com.victorbarreto.saude_conectada.paciente.entity.StatusMeta;
+import com.victorbarreto.saude_conectada.paciente.pacienteRepository.PacienteMetaRepository;
+import com.victorbarreto.saude_conectada.profissional.dto.ProfissionalMetaCreateDTO;
+import com.victorbarreto.saude_conectada.profissional.dto.ProfissionalMetaResponseDTO;
 import com.victorbarreto.saude_conectada.profissional.dto.ProfissionalPerfilDTO;
 import com.victorbarreto.saude_conectada.profissional.entity.ProfissionalDadosModel;
 import com.victorbarreto.saude_conectada.profissional.repository.ProfissionalRepository;
+import com.victorbarreto.saude_conectada.usuario.entity.TipoUsuario;
 import com.victorbarreto.saude_conectada.usuario.entity.UsuarioModel;
 import com.victorbarreto.saude_conectada.usuario.repository.UsuarioRepository;
 
@@ -18,6 +23,9 @@ public class ProfissionalService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PacienteMetaRepository pacienteMetaRepository;
 
     //POST
     public ProfissionalPerfilDTO criarPerfil(ProfissionalPerfilDTO profissionalPerfilDTO, String emailUsuarioLogado) {
@@ -47,32 +55,27 @@ public class ProfissionalService {
     //PUT
     public ProfissionalPerfilDTO atualizarPerfil(ProfissionalPerfilDTO profissionalPerfilDTO,
                                                  String emailUsuarioLogado) {
-        // 1. Busca o usuário principal
+
         UsuarioModel usuario = usuarioRepository.findByEmail(emailUsuarioLogado)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário com email " + emailUsuarioLogado + " não encontrado."));
 
-        // 2. Busca o perfil. Se não existir, cria um novo objeto.
+
         ProfissionalDadosModel profissionalDadosModel = profissionalRepository.findByUsuarioModel(usuario)
                 .orElse(new ProfissionalDadosModel());
 
-        // 3. Associa o usuário ao perfil (importante para o caso de ser um novo)
+
         profissionalDadosModel.setUsuarioModel(usuario);
 
-        // 4. Atualiza os dados do perfil com o que veio do formulário
-        // CORRIGI UM BUG AQUI: estava usando ufCrm no lugar de crm
+
         profissionalDadosModel.setCrm(profissionalPerfilDTO.crm());
         profissionalDadosModel.setEspecialidade(profissionalPerfilDTO.especialidade());
         profissionalDadosModel.setUfCrm(profissionalPerfilDTO.ufCrm());
 
-        // 5. Salva (cria ou atualiza) o perfil no banco
+
         ProfissionalDadosModel perfilSalvo = profissionalRepository.save(profissionalDadosModel);
 
-        // 6. Retorna o DTO com os dados salvos
-        return new ProfissionalPerfilDTO(
-                perfilSalvo.getCrm(),
-                perfilSalvo.getUfCrm(),
-                perfilSalvo.getEspecialidade()
-        );
+
+        return new ProfissionalPerfilDTO(perfilSalvo.getCrm(), perfilSalvo.getUfCrm(), perfilSalvo.getEspecialidade());
     }
 
     public ProfissionalPerfilDTO buscarPerfil(String emailUsuario) {
@@ -83,13 +86,35 @@ public class ProfissionalService {
 
         if (perfilOpt.isPresent()) {
             var perfil = perfilOpt.get();
-            return new ProfissionalPerfilDTO(
-                    perfil.getCrm(),
-                    perfil.getUfCrm(),
-                    perfil.getEspecialidade()
-            );
+            return new ProfissionalPerfilDTO(perfil.getCrm(), perfil.getUfCrm(), perfil.getEspecialidade());
         } else {
             return new ProfissionalPerfilDTO(null, null, null);
         }
+    }
+
+    public ProfissionalMetaResponseDTO criarMetaParaPaciente(Long pacienteId, ProfissionalMetaCreateDTO metaDTO) {
+        UsuarioModel paciente = usuarioRepository.findById(pacienteId)
+                .orElseThrow(() -> new UsernameNotFoundException("Paciente com ID " + pacienteId + " não encontrado."));
+
+
+        if (paciente.getTipo() != TipoUsuario.PACIENTE) {
+            throw new IllegalStateException("O usuário com ID " + pacienteId + " não é um paciente.");
+        }
+
+        PacienteMetaDiaria novaMeta = new PacienteMetaDiaria();
+
+        novaMeta.setDescricao(metaDTO.descricao());
+        novaMeta.setDataMeta(metaDTO.dataMeta());
+        novaMeta.setStatus(StatusMeta.PENDENTE);
+        novaMeta.setPaciente(paciente);
+
+        PacienteMetaDiaria metaSalva = pacienteMetaRepository.save(novaMeta);
+
+        return new ProfissionalMetaResponseDTO(
+                metaSalva.getId(),
+                metaSalva.getDescricao(),
+                metaSalva.getDataMeta(),
+                metaSalva.getStatus()
+        );
     }
 }

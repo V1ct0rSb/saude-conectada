@@ -47,14 +47,11 @@ public class SecurityConfig {
                         // ADICIONE ESTA LINHA: Permite todas as requisições OPTIONS do preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Suas regras existentes
                         .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
 
-                        // ===================> ADICIONE ESTA REGRA <===================
                         // Exige que o usuário tenha a permissão "PACIENTE" para acessar as rotas de perfil de paciente
                         .requestMatchers("/api/perfil/paciente/**").hasRole("PACIENTE")
-                        // =============================================================
                         .requestMatchers("/api/perfil/profissional/**").hasRole("PROFISSIONAL")
 
                         .anyRequest().authenticated()

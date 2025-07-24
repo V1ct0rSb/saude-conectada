@@ -21,16 +21,12 @@ public class PacienteController {
 
     @PostMapping("/perfil/paciente")
     public ResponseEntity<PacientePerfilDTO> criarPerfil(@RequestBody PacientePerfilDTO pacienteDTO,
-                                                         Authentication authentication) { // Spring Security injeta o usuário logado aqui
+                                                         Authentication authentication) {
 
-        // O Controller não sabe "como" criar o perfil.
-        // Ele apenas delega a responsabilidade para o Service.
-        String emailUsuario = authentication.getName(); // Pega o email/username do token JWT
+        String emailUsuario = authentication.getName();
 
         PacientePerfilDTO perfilCriado = pacienteService.criarPerfil(pacienteDTO, emailUsuario);
 
-        // Retorna o status 201 Created, que é o correto para criação de recursos.
-        // O corpo da resposta contém os dados do perfil que foi criado.
         return ResponseEntity.status(HttpStatus.CREATED).body(perfilCriado);
     }
 
@@ -45,13 +41,13 @@ public class PacienteController {
 
     @GetMapping("/perfil/paciente")
     public ResponseEntity<PacientePerfilDTO> buscarPerfil(Authentication authentication) {
-        // Pega o email do usuário que vem no token JWT
+
         String emailUsuario = authentication.getName();
 
-        // Pede ao service para buscar os dados do perfil com base no email
+
         PacientePerfilDTO perfil = pacienteService.buscarPerfil(emailUsuario);
 
-        // Retorna os dados do perfil com status 200 OK
+
         return ResponseEntity.ok(perfil);
     }
 }
